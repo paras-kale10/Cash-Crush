@@ -1,0 +1,159 @@
+// CashCrush — PostgreSQL schema (Neon-ready)
+// Run: npx prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// User
+// ─────────────────────────────────────────────
+
+model User {
+  id                String   @id @default(uuid()) @db.Uuid
+  email             String   @unique
+  passwordHash      String?
+  googleId          String?  @unique
+  username          String
+  avatar            String   @default("adventurer")
+  level             Int      @default(1)
+  xp                Int      @default(0)
+  title             String   @default("Bronze Saver")
+  monthlyIncome     Decimal  @default(0) @db.Decimal(14, 2)
+  salaryDate        Int      @default(1)
+  isOnboarded       Boolean  @default(false)
+  migratedFromLocal Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  transactions     Transaction[]
+  goals            Goal[]
+  securityVault    SecurityVault?
+  userAchievements UserAchievement[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// Transactions (expenses, bills, vault deposits)
+// ─────────────────────────────────────────────
+
+enum TransactionType {
+  EXPENSE
+  BILL
+  VAULT_DEPOSIT
+  INCOME
+}
+
+model Transaction {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @db.Uuid
+  type      TransactionType
+  name      String
+  amount    Decimal         @db.Decimal(14, 2)
+  category  String?
+  date      DateTime        @default(now())
+  notes     String?
+  isPaid    Boolean         @default(false)
+  dueDate   Int?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, type])
+  @@index([userId, date(sort: Desc)])
+  @@map("transactions")
+}
+
+// ─────────────────────────────────────────────
+// Savings Goals
+// ─────────────────────────────────────────────
+
+model Goal {
+  id            String    @id @default(uuid()) @db.Uuid
+  userId        String    @db.Uuid
+  name          String
+  targetAmount  Decimal   @db.Decimal(14, 2)
+  currentAmount Decimal   @default(0) @db.Decimal(14, 2)
+  deadline      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("goals")
+}
+
+// ─────────────────────────────────────────────
+// Security Vault
+// ─────────────────────────────────────────────
+
+model SecurityVault {
+  id                  String   @id @default(uuid()) @db.Uuid
+  userId              String   @unique @db.Uuid
+  monthlyContribution Decimal  @default(0) @db.Decimal(14, 2)
+  currentSavings      Decimal  @default(0) @db.Decimal(14, 2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  history VaultHistory[]
+
+  @@map("security_vaults")
+}
+
+model VaultHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  vaultId   String   @db.Uuid
+  amount    Decimal  @db.Decimal(14, 2)
+  month     Int
+  year      Int
+  depositedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  vault SecurityVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  @@index([vaultId])
+  @@map("vault_history")
+}
+
+// ─────────────────────────────────────────────
+// Achievements
+// ─────────────────────────────────────────────
+
+model Achievement {
+  id          String   @id @default(uuid()) @db.Uuid
+  slug        String   @unique
+  name        String
+  description String
+  icon        String   @default("🏆")
+  xp          Int      @default(50)
+  createdAt   DateTime @default(now())
+
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  achievementId String   @db.Uuid
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@map("user_achievements")
+}

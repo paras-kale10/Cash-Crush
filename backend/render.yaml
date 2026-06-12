@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cashcrush-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run db:generate
+    startCommand: npm run db:migrate && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
