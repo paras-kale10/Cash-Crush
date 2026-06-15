@@ -3,16 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Shield, Target, Trophy, Edit, Trash2 } from 'lucide-react';
 import useStore from '../store/useStore';
-
-const AVATAR_MAP = {
-  pirate: '🏴‍☠️',
-  mage: '🧙',
-  adventurer: '🧗',
-  knight: '⚔️',
-  'treasure hunter': '🗺️',
-};
-
-const AVATAR_OPTIONS = Object.entries(AVATAR_MAP);
+import { AVATAR_OPTIONS, getAvatarEmoji } from '../utils/avatars';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -42,7 +33,7 @@ export default function ProfilePage() {
     return current >= target;
   }).length;
 
-  const avatarEmoji = AVATAR_MAP[user.avatar?.toLowerCase()] || AVATAR_MAP['adventurer'];
+  const avatarEmoji = getAvatarEmoji(user.avatar);
   const memberSince = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
     : 'Recently';
@@ -269,25 +260,25 @@ export default function ProfilePage() {
             <div style={{ marginBottom: '1.5rem' }}>
               <label style={labelStyle}>Select Avatar</label>
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {AVATAR_OPTIONS.map(([key, emoji]) => (
+                {AVATAR_OPTIONS.map(({ slug, emoji }) => (
                   <motion.button
-                    key={key}
+                    key={slug}
                     type="button"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => setEditAvatar(key)}
+                    onClick={() => setEditAvatar(slug)}
                     style={{
                       width: '60px',
                       height: '60px',
                       borderRadius: '50%',
-                      border: editAvatar === key ? '3px solid #D4A017' : '2px solid #334155',
-                      background: editAvatar === key ? 'rgba(212,160,23,0.1)' : '#1E293B',
+                      border: editAvatar === slug ? '3px solid #D4A017' : '2px solid #334155',
+                      background: editAvatar === slug ? 'rgba(212,160,23,0.1)' : '#1E293B',
                       fontSize: '1.75rem',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: editAvatar === key ? '0 0 10px rgba(212,160,23,0.3)' : 'none',
+                      boxShadow: editAvatar === slug ? '0 0 10px rgba(212,160,23,0.3)' : 'none',
                     }}
                   >
                     {emoji}

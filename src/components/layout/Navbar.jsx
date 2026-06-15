@@ -1,20 +1,12 @@
 import React from 'react';
 import { Bell, Menu, Settings } from 'lucide-react';
 import useStore from '../../store/useStore';
-
-const avatarEmojis = {
-  pirate: '🏴‍☠️',
-  mage: '🧙',
-  adventurer: '🧗',
-  knight: '⚔️',
-  'treasure hunter': '🗺️',
-};
+import { getAvatarEmoji } from '../../utils/avatars';
 
 const Navbar = ({ onToggleSidebar }) => {
   const store = useStore();
   const username = store.user?.username || 'Adventurer';
-  const avatar = store.user?.avatar || 'adventurer';
-  const avatarEmoji = avatarEmojis[avatar] || '🧗';
+  const avatarEmoji = getAvatarEmoji(store.user?.avatar);
 
   const notifications = store.notifications || [];
   const unreadCount = notifications.filter((n) => !n.read).length;

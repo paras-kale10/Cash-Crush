@@ -1,6 +1,8 @@
 /**
  * Maps API responses into the shape expected by the Zustand store / UI.
  */
+import { normalizeAvatar } from './avatars.js';
+
 export function mapProfileToStore(profile, transactions) {
   const expenses = (transactions?.items || transactions || [])
     .filter((t) => t.type === 'EXPENSE')
@@ -36,7 +38,7 @@ export function mapProfileToStore(profile, transactions) {
     user: {
       username: profile.username,
       email: profile.email,
-      avatar: profile.avatar,
+      avatar: normalizeAvatar(profile.avatar),
       level: profile.level,
       xp: profile.xp,
       title: profile.title,

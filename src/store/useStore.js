@@ -4,6 +4,7 @@ import { isApiEnabled, setToken, getToken } from '../api/client.js';
 import { authApi } from '../api/services.js';
 import { migrateLegacyDataIfNeeded } from '../utils/migrateLocalStorage.js';
 import { fetchFullUserState } from '../utils/hydrateFromApi.js';
+import { normalizeAvatar } from '../utils/avatars.js';
 import {
   syncProfile,
   syncVault,
@@ -117,6 +118,9 @@ const defaultState = {
 const useStore = create((set, get) => {
   const saved = loadState();
   const initial = saved ? { ...defaultState, ...saved } : { ...defaultState };
+  if (initial.user?.avatar) {
+    initial.user.avatar = normalizeAvatar(initial.user.avatar);
+  }
 
   return {
     ...initial,
@@ -219,11 +223,12 @@ const useStore = create((set, get) => {
 
     /* ---- Onboarding ---- */
     setAvatar: async (avatar) => {
-      await syncProfile({ avatar });
+      const normalized = normalizeAvatar(avatar);
+      await syncProfile({ avatar: normalized });
       set(state => {
         const newState = {
           ...state,
-          user: { ...state.user, avatar },
+          user: { ...state.user, avatar: normalized },
         };
         saveState(newState);
         return newState;
@@ -653,7 +658,7 @@ const useStore = create((set, get) => {
     updateProfile: async (updates) => {
       const profileFields = {};
       if (updates.username !== undefined) profileFields.username = updates.username;
-      if (updates.avatar !== undefined) profileFields.avatar = updates.avatar;
+      if (updates.avatar !== undefined) profileFields.avatar = normalizeAvatar(updates.avatar);
       if (updates.level !== undefined) profileFields.level = updates.level;
       if (updates.xp !== undefined) profileFields.xp = updates.xp;
       if (updates.title !== undefined) profileFields.title = updates.title;
@@ -664,7 +669,7 @@ const useStore = create((set, get) => {
       set(state => {
         const newState = {
           ...state,
-          user: { ...state.user, ...updates },
+          user: { ...state.user, ...updates, ...(updates.avatar !== undefined && { avatar: normalizeAvatar(updates.avatar) }) },
         };
         saveState(newState);
         return newState;
@@ -680,6 +685,12 @@ const useStore = create((set, get) => {
     /* ---- Computed Getters ---- */
     getTotalBills: () => {
       return get().bills.reduce((sum, b) => sum + Number(b.amount), 0);
+    },
+
+    getTotalPaidBills: () => {
+      return get().bills
+        .filter((b) => b.isPaid)
+        .reduce((sum, b) => sum + Number(b.amount), 0);
     },
 
     getPaidBills: () => {
@@ -715,7 +726,7 @@ const useStore = create((set, get) => {
 
     getSafeSpendingBudget: () => {
       const state = get();
-      return state.monthlyIncome - state.vault.monthlyContribution - state.getTotalBills();
+      return state.monthlyIncome - state.vault.monthlyContribution - state.getTotalPaidBills();
     },
 
     getRemainingBudget: () => {

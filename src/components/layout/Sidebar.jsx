@@ -16,14 +16,7 @@ import {
   Star,
 } from 'lucide-react';
 import useStore from '../../store/useStore';
-
-const avatarEmojis = {
-  pirate: '🏴‍☠️',
-  mage: '🧙',
-  adventurer: '🧗',
-  knight: '⚔️',
-  'treasure hunter': '🗺️',
-};
+import { getAvatarEmoji } from '../../utils/avatars';
 
 const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -47,7 +40,7 @@ const Sidebar = ({ isOpen, onToggle, isMobile }) => {
   const xp = store.user?.xp || 0;
   const title = store.user?.title || 'Bronze Saver';
   const avatar = store.user?.avatar || 'adventurer';
-  const avatarEmoji = avatarEmojis[avatar] || '🧗';
+  const avatarEmoji = getAvatarEmoji(avatar);
 
   const xpForLevel = 100;
   const currentLevelXp = xp % xpForLevel;

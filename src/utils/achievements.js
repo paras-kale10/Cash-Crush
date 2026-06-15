@@ -38,8 +38,10 @@ export const ALL_ACHIEVEMENTS = [
     icon: '👑',
     xp: 100,
     condition: (state) => {
-      const totalBills = state.bills.reduce((s, b) => s + Number(b.amount), 0);
-      const budget = state.monthlyIncome - state.vault.monthlyContribution - totalBills;
+      const totalPaidBills = state.bills
+        .filter((b) => b.isPaid)
+        .reduce((s, b) => s + Number(b.amount), 0);
+      const budget = state.monthlyIncome - state.vault.monthlyContribution - totalPaidBills;
       const spent = state.expenses
         .filter(e => {
           const d = new Date(e.date);

@@ -21,8 +21,10 @@ export function generateInsights(state) {
   });
 
   const totalSpent = monthlyExpenses.reduce((s, e) => s + Number(e.amount), 0);
-  const totalBills = (state.bills || []).reduce((s, b) => s + Number(b.amount), 0);
-  const budget = state.monthlyIncome - (state.vault?.monthlyContribution || 0) - totalBills;
+  const totalPaidBills = (state.bills || [])
+    .filter((b) => b.isPaid)
+    .reduce((s, b) => s + Number(b.amount), 0);
+  const budget = state.monthlyIncome - (state.vault?.monthlyContribution || 0) - totalPaidBills;
   const remaining = budget - totalSpent;
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysPassed = now.getDate();

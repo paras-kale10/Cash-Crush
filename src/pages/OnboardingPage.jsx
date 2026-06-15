@@ -16,6 +16,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import useStore from '../store/useStore';
+import { AVATAR_OPTIONS } from '../utils/avatars';
 
 const TOTAL_STEPS = 5;
 
@@ -27,13 +28,7 @@ const STEPS = [
   { icon: BarChart3, label: 'Summary', color: '#A78BFA' },
 ];
 
-const avatars = [
-  { name: 'Pirate', emoji: '🏴‍☠️' },
-  { name: 'Mage', emoji: '🧙' },
-  { name: 'Adventurer', emoji: '🧗' },
-  { name: 'Knight', emoji: '⚔️' },
-  { name: 'Treasure Hunter', emoji: '🗺️' },
-];
+const avatars = AVATAR_OPTIONS;
 
 const SALARY_DATE_PRESETS = [1, 5, 10, 15, 25, 31];
 
@@ -244,16 +239,16 @@ const AvatarStep = ({ selected, onSelect }) => (
     />
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-md mx-auto">
       {avatars.map((avatar, i) => {
-        const isSelected = selected === avatar.name;
+        const isSelected = selected === avatar.slug;
         return (
           <motion.button
-            key={avatar.name}
+            key={avatar.slug}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             whileHover={{ scale: 1.04, y: -2 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => onSelect(avatar.name)}
+            onClick={() => onSelect(avatar.slug)}
             style={{
               borderRadius: '1rem',
               padding: '1.25rem 0.75rem',
@@ -273,7 +268,7 @@ const AvatarStep = ({ selected, onSelect }) => (
               {avatar.emoji}
             </span>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: isSelected ? '#FBBF24' : '#CBD5E1' }}>
-              {avatar.name}
+              {avatar.label}
             </span>
           </motion.button>
         );
