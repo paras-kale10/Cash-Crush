@@ -660,6 +660,7 @@ const SummaryStep = ({ income, vault, bills }) => {
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const store = useStore();
+  const bills = useStore((s) => s.bills);
 
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
@@ -668,7 +669,7 @@ export default function OnboardingPage() {
   const [income, setIncome] = useState('');
   const [salaryDate, setSalaryDate] = useState('');
   const [vaultAmount, setVaultAmount] = useState('');
-  const [bills, setBills] = useState([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const nextStep = () => {
     setDirection(1);
@@ -680,26 +681,33 @@ export default function OnboardingPage() {
     setStep((s) => Math.max(s - 1, 0));
   };
 
-  const handleAvatarSelect = (name) => {
+  const handleAvatarSelect = async (name) => {
     setSelectedAvatar(name);
-    store.setAvatar(name);
+    await store.setAvatar(name);
   };
 
-  const handleAddBill = (bill) => {
-    setBills((prev) => [...prev, bill]);
-    store.addBill(bill);
+  const handleAddBill = async (bill) => {
+    await store.addBill(bill);
   };
 
-  const handleDeleteBill = (idx) => {
-    setBills((prev) => prev.filter((_, i) => i !== idx));
+  const handleDeleteBill = async (idx) => {
+    const bill = bills[idx];
+    if (bill) await store.deleteBill(bill.id);
   };
 
-  const handleFinish = () => {
-    store.setMonthlyIncome(Number(income));
-    store.setSalaryDate(Number(salaryDate));
-    store.setVaultContribution(Number(vaultAmount));
-    store.completeOnboarding();
-    navigate('/dashboard');
+  const handleFinish = async () => {
+    setIsSaving(true);
+    try {
+      await store.setMonthlyIncome(Number(income));
+      await store.setSalaryDate(Number(salaryDate));
+      await store.setVaultContribution(Number(vaultAmount));
+      await store.completeOnboarding();
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Failed to save onboarding data:', err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const canProceed = () => {
@@ -842,6 +850,7 @@ export default function OnboardingPage() {
           ) : (
             <button
               onClick={handleFinish}
+              disabled={isSaving}
               className="btn btn-primary btn-lg"
               style={{
                 display: 'flex',
@@ -856,7 +865,7 @@ export default function OnboardingPage() {
               }}
             >
               <Sparkles size={18} />
-              Start Your Adventure
+              {isSaving ? 'Saving...' : 'Start Your Adventure'}
             </button>
           )}
         </div>

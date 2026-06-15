@@ -5,12 +5,9 @@ const MIGRATION_FLAG_KEY = 'cashcrush_migration_attempted';
 
 /**
  * Reads legacy localStorage data and uploads it to PostgreSQL via API.
- * Runs once per browser after first API login.
+ * Runs after login and on session restore when local data may not have synced yet.
  */
 export async function migrateLegacyDataIfNeeded() {
-  const alreadyAttempted = localStorage.getItem(MIGRATION_FLAG_KEY);
-  if (alreadyAttempted) return { migrated: false, reason: 'already_attempted' };
-
   const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
   if (!raw) {
     localStorage.setItem(MIGRATION_FLAG_KEY, '1');
@@ -25,7 +22,6 @@ export async function migrateLegacyDataIfNeeded() {
     return { migrated: false, reason: 'invalid_json' };
   }
 
-  // Only migrate if there is meaningful data beyond defaults
   const hasData =
     (localData.expenses?.length > 0) ||
     (localData.bills?.length > 0) ||
@@ -38,9 +34,14 @@ export async function migrateLegacyDataIfNeeded() {
     return { migrated: false, reason: 'empty_data' };
   }
 
+  const alreadyAttempted = localStorage.getItem(MIGRATION_FLAG_KEY);
+  // Allow retry when onboarding was completed locally but never synced to the server
+  if (alreadyAttempted && !localData.isOnboarded) {
+    return { migrated: false, reason: 'already_attempted' };
+  }
+
   const result = await migrateApi.fromLocalStorage(localData);
   localStorage.setItem(MIGRATION_FLAG_KEY, '1');
 
-  // Keep legacy key as backup until user confirms data in cloud
   return result;
 }

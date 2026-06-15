@@ -4,6 +4,20 @@ import { isApiEnabled, setToken, getToken } from '../api/client.js';
 import { authApi } from '../api/services.js';
 import { migrateLegacyDataIfNeeded } from '../utils/migrateLocalStorage.js';
 import { fetchFullUserState } from '../utils/hydrateFromApi.js';
+import {
+  syncProfile,
+  syncVault,
+  syncCreateBill,
+  syncUpdateBill,
+  syncDeleteBill,
+  syncCreateExpense,
+  syncUpdateExpense,
+  syncDeleteExpense,
+  syncCreateGoal,
+  syncUpdateGoal,
+  syncDeleteGoal,
+  syncVaultDeposit,
+} from '../utils/syncToApi.js';
 
 /* ============================================
    LOCAL STORAGE HELPERS
@@ -180,6 +194,7 @@ const useStore = create((set, get) => {
     restoreSession: async () => {
       if (!isApiEnabled() || !getToken()) return false;
       try {
+        await migrateLegacyDataIfNeeded();
         const hydrated = await fetchFullUserState();
         set(state => {
           const newState = { ...state, ...hydrated, isLoggedIn: true };
@@ -203,7 +218,8 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Onboarding ---- */
-    setAvatar: (avatar) => {
+    setAvatar: async (avatar) => {
+      await syncProfile({ avatar });
       set(state => {
         const newState = {
           ...state,
@@ -214,41 +230,51 @@ const useStore = create((set, get) => {
       });
     },
 
-    setMonthlyIncome: (amount) => {
+    setMonthlyIncome: async (amount) => {
+      const monthlyIncome = Number(amount);
+      await syncProfile({ monthlyIncome });
       set(state => {
-        const newState = { ...state, monthlyIncome: Number(amount) };
+        const newState = { ...state, monthlyIncome };
         saveState(newState);
         return newState;
       });
     },
 
-    setSalaryDate: (day) => {
+    setSalaryDate: async (day) => {
+      const salaryDate = Number(day);
+      await syncProfile({ salaryDate });
       set(state => {
-        const newState = { ...state, salaryDate: Number(day) };
+        const newState = { ...state, salaryDate };
         saveState(newState);
         return newState;
       });
     },
 
-    setVaultContribution: (amount) => {
+    setVaultContribution: async (amount) => {
+      const monthlyContribution = Number(amount);
+      await syncVault({ monthlyContribution });
       set(state => {
         const newState = {
           ...state,
-          vault: { ...state.vault, monthlyContribution: Number(amount) },
+          vault: { ...state.vault, monthlyContribution },
         };
         saveState(newState);
         return newState;
       });
     },
 
-    completeOnboarding: () => {
-      set(state => {
+    completeOnboarding: async () => {
+      const state = get();
+      const currentSavings = state.vault.monthlyContribution;
+      await syncProfile({ isOnboarded: true });
+      await syncVault({ currentSavings });
+      set(s => {
         const newState = {
-          ...state,
+          ...s,
           isOnboarded: true,
           vault: {
-            ...state.vault,
-            currentSavings: state.vault.monthlyContribution,
+            ...s.vault,
+            currentSavings,
           },
         };
         saveState(newState);
@@ -257,13 +283,16 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Bills ---- */
-    addBill: (bill) => {
+    addBill: async (bill) => {
+      let newBill = {
+        id: Date.now().toString(),
+        isPaid: false,
+        ...bill,
+      };
+      const synced = await syncCreateBill(newBill);
+      if (synced) newBill = synced;
+
       set(state => {
-        const newBill = {
-          id: Date.now().toString(),
-          isPaid: false,
-          ...bill,
-        };
         const newState = {
           ...state,
           bills: [...state.bills, newBill],
@@ -273,7 +302,8 @@ const useStore = create((set, get) => {
       });
     },
 
-    updateBill: (id, updates) => {
+    updateBill: async (id, updates) => {
+      await syncUpdateBill(id, updates);
       set(state => {
         const newState = {
           ...state,
@@ -284,7 +314,8 @@ const useStore = create((set, get) => {
       });
     },
 
-    deleteBill: (id) => {
+    deleteBill: async (id) => {
+      await syncDeleteBill(id);
       set(state => {
         const newState = {
           ...state,
@@ -295,7 +326,9 @@ const useStore = create((set, get) => {
       });
     },
 
-    toggleBillPaid: (id) => {
+    toggleBillPaid: async (id) => {
+      const bill = get().bills.find(b => b.id === id);
+      if (bill) await syncUpdateBill(id, { isPaid: !bill.isPaid });
       set(state => {
         const newState = {
           ...state,
@@ -309,19 +342,21 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Expenses ---- */
-    addExpense: (expense) => {
+    addExpense: async (expense) => {
+      let newExpense = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        ...expense,
+      };
+      const synced = await syncCreateExpense(newExpense);
+      if (synced) newExpense = synced;
+
       set(state => {
-        const newExpense = {
-          id: Date.now().toString(),
-          date: new Date().toISOString(),
-          ...expense,
-        };
         const newState = {
           ...state,
           expenses: [newExpense, ...state.expenses],
         };
-        
-        // Check for newly unlocked achievements
+
         const newlyUnlocked = checkAchievements(newState);
         if (newlyUnlocked.length > 0) {
           const totalXP = newlyUnlocked.reduce((sum, a) => {
@@ -339,13 +374,23 @@ const useStore = create((set, get) => {
           newState.user.level = newLevel;
           newState.user.title = titles[titleIdx];
         }
-        
+
         saveState(newState);
         return newState;
       });
+
+      const updated = get().user;
+      if (isApiEnabled()) {
+        await syncProfile({
+          xp: updated.xp,
+          level: updated.level,
+          title: updated.title,
+        }).catch(() => {});
+      }
     },
 
-    updateExpense: (id, updates) => {
+    updateExpense: async (id, updates) => {
+      await syncUpdateExpense(id, updates);
       set(state => {
         const newState = {
           ...state,
@@ -358,7 +403,8 @@ const useStore = create((set, get) => {
       });
     },
 
-    deleteExpense: (id) => {
+    deleteExpense: async (id) => {
+      await syncDeleteExpense(id);
       set(state => {
         const newState = {
           ...state,
@@ -370,14 +416,17 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Goals ---- */
-    addGoal: (goal) => {
+    addGoal: async (goal) => {
+      let newGoal = {
+        id: Date.now().toString(),
+        currentAmount: 0,
+        createdAt: new Date().toISOString(),
+        ...goal,
+      };
+      const synced = await syncCreateGoal(newGoal);
+      if (synced) newGoal = synced;
+
       set(state => {
-        const newGoal = {
-          id: Date.now().toString(),
-          currentAmount: 0,
-          createdAt: new Date().toISOString(),
-          ...goal,
-        };
         const newState = {
           ...state,
           goals: [...state.goals, newGoal],
@@ -387,7 +436,8 @@ const useStore = create((set, get) => {
       });
     },
 
-    updateGoal: (id, updates) => {
+    updateGoal: async (id, updates) => {
+      await syncUpdateGoal(id, updates);
       set(state => {
         const newState = {
           ...state,
@@ -400,7 +450,8 @@ const useStore = create((set, get) => {
       });
     },
 
-    deleteGoal: (id) => {
+    deleteGoal: async (id) => {
+      await syncDeleteGoal(id);
       set(state => {
         const newState = {
           ...state,
@@ -411,18 +462,19 @@ const useStore = create((set, get) => {
       });
     },
 
-    addToGoal: (id, amount) => {
+    addToGoal: async (id, amount) => {
+      const goal = get().goals.find(g => g.id === id);
+      const currentAmount = (goal?.currentAmount || 0) + Number(amount);
+      await syncUpdateGoal(id, { currentAmount });
+
       set(state => {
         const newState = {
           ...state,
           goals: state.goals.map(g =>
-            g.id === id
-              ? { ...g, currentAmount: g.currentAmount + Number(amount) }
-              : g
+            g.id === id ? { ...g, currentAmount } : g
           ),
         };
-        
-        // Check for newly unlocked achievements
+
         const newlyUnlocked = checkAchievements(newState);
         if (newlyUnlocked.length > 0) {
           const totalXP = newlyUnlocked.reduce((sum, a) => {
@@ -440,33 +492,50 @@ const useStore = create((set, get) => {
           newState.user.level = newLevel;
           newState.user.title = titles[titleIdx];
         }
-        
+
         saveState(newState);
         return newState;
       });
+
+      const updated = get().user;
+      if (isApiEnabled()) {
+        await syncProfile({
+          xp: updated.xp,
+          level: updated.level,
+          title: updated.title,
+        }).catch(() => {});
+      }
     },
 
     /* ---- Vault ---- */
-    addToVault: (amount) => {
+    addToVault: async (amount) => {
+      const depositAmount = Number(amount);
+      const syncedVault = await syncVaultDeposit(depositAmount);
+
       set(state => {
+        const historyEntry = syncedVault?.history?.[0]
+          ? {
+              month: syncedVault.history[0].month,
+              year: syncedVault.history[0].year,
+              amount: syncedVault.history[0].amount,
+              date: syncedVault.history[0].date,
+            }
+          : {
+              month: new Date().getMonth(),
+              year: new Date().getFullYear(),
+              amount: depositAmount,
+              date: new Date().toISOString(),
+            };
+
         const newState = {
           ...state,
           vault: {
             ...state.vault,
-            currentSavings: state.vault.currentSavings + Number(amount),
-            history: [
-              ...state.vault.history,
-              {
-                month: new Date().getMonth(),
-                year: new Date().getFullYear(),
-                amount: Number(amount),
-                date: new Date().toISOString(),
-              },
-            ],
+            currentSavings: syncedVault?.currentSavings ?? state.vault.currentSavings + depositAmount,
+            history: [...state.vault.history, historyEntry],
           },
         };
-        
-        // Check for newly unlocked achievements
+
         const newlyUnlocked = checkAchievements(newState);
         if (newlyUnlocked.length > 0) {
           const totalXP = newlyUnlocked.reduce((sum, a) => {
@@ -484,26 +553,39 @@ const useStore = create((set, get) => {
           newState.user.level = newLevel;
           newState.user.title = titles[titleIdx];
         }
-        
+
         saveState(newState);
         return newState;
       });
+
+      const updated = get().user;
+      if (isApiEnabled()) {
+        await syncProfile({
+          xp: updated.xp,
+          level: updated.level,
+          title: updated.title,
+        }).catch(() => {});
+      }
     },
 
     /* ---- XP & Level ---- */
-    addXP: (amount) => {
+    addXP: async (amount) => {
+      const newXP = get().user.xp + amount;
+      const newLevel = Math.floor(newXP / 100) + 1;
+      const titles = ['Bronze Saver', 'Silver Saver', 'Gold Saver', 'Diamond Saver', 'Treasure Master'];
+      const titleIdx = Math.min(Math.floor((newLevel - 1) / 2), titles.length - 1);
+      const title = titles[titleIdx];
+
+      await syncProfile({ xp: newXP, level: newLevel, title });
+
       set(state => {
-        const newXP = state.user.xp + amount;
-        const newLevel = Math.floor(newXP / 100) + 1;
-        const titles = ['Bronze Saver', 'Silver Saver', 'Gold Saver', 'Diamond Saver', 'Treasure Master'];
-        const titleIdx = Math.min(Math.floor((newLevel - 1) / 2), titles.length - 1);
         const newState = {
           ...state,
           user: {
             ...state.user,
             xp: newXP,
             level: newLevel,
-            title: titles[titleIdx],
+            title,
           },
         };
         saveState(newState);
@@ -568,7 +650,17 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Update Profile ---- */
-    updateProfile: (updates) => {
+    updateProfile: async (updates) => {
+      const profileFields = {};
+      if (updates.username !== undefined) profileFields.username = updates.username;
+      if (updates.avatar !== undefined) profileFields.avatar = updates.avatar;
+      if (updates.level !== undefined) profileFields.level = updates.level;
+      if (updates.xp !== undefined) profileFields.xp = updates.xp;
+      if (updates.title !== undefined) profileFields.title = updates.title;
+      if (Object.keys(profileFields).length > 0) {
+        await syncProfile(profileFields);
+      }
+
       set(state => {
         const newState = {
           ...state,
