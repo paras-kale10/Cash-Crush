@@ -372,7 +372,6 @@ Built with ❤️ by Team Cash Crush.
 ### Team Members
 
 - Paras
-- Add Team Members Here
 
 ---
 
