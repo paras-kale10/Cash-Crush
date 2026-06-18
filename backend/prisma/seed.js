@@ -12,6 +12,11 @@ const ACHIEVEMENTS = [
   { slug: 'goal-achiever', name: 'Goal Achiever', description: 'Complete a savings goal', icon: '🏆', xp: 200 },
   { slug: 'vault-guardian', name: 'Vault Guardian', description: 'Save ₹10,000 in your vault', icon: '🛡️', xp: 150 },
   { slug: 'treasure-hunter', name: 'Treasure Hunter', description: 'Track 50 expenses', icon: '🗺️', xp: 100 },
+  { slug: 'treasure-champion', name: 'Treasure Champion', description: 'Save ₹50,000 total', icon: '💎', xp: 300 },
+  { slug: 'all-bills-paid', name: 'Bill Crusher', description: 'Pay all bills in a month', icon: '💪', xp: 75 },
+  { slug: 'category-explorer', name: 'Category Explorer', description: 'Have expenses in 5+ categories', icon: '🌟', xp: 50 },
+  { slug: 'streak-7', name: '7-Day Streak', description: 'Track expenses for 7 consecutive days', icon: '🔥', xp: 75 },
+  { slug: 'streak-30', name: '30-Day Streak', description: 'Track expenses for 30 consecutive days', icon: '🔥🔥', xp: 200 },
   { slug: 'streak-saver', name: 'Streak Saver', description: 'Save for 3 consecutive months', icon: '🔥', xp: 120 },
   { slug: 'level-up', name: 'Level Up', description: 'Reach level 5', icon: '⭐', xp: 75 },
 ];

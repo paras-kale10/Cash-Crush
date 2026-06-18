@@ -25,6 +25,7 @@ export const updateProfileSchema = z.object({
     level: z.number().int().min(1).optional(),
     xp: z.number().int().min(0).optional(),
     title: z.string().max(100).optional(),
+    achievements: z.array(z.string()).optional(),
   }),
 });
 
@@ -64,7 +65,7 @@ export const goalSchema = z.object({
     name: z.string().min(1).max(200).trim(),
     targetAmount: z.number().positive(),
     currentAmount: z.number().min(0).optional(),
-    deadline: z.string().datetime().optional().nullable(),
+    deadline: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional().nullable(),
   }),
 });
 
@@ -74,7 +75,7 @@ export const updateGoalSchema = z.object({
     name: z.string().min(1).max(200).trim().optional(),
     targetAmount: z.number().positive().optional(),
     currentAmount: z.number().min(0).optional(),
-    deadline: z.string().datetime().optional().nullable(),
+    deadline: z.string().datetime().or(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).optional().nullable(),
   }),
 });
 

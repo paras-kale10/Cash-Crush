@@ -390,6 +390,7 @@ const useStore = create((set, get) => {
           xp: updated.xp,
           level: updated.level,
           title: updated.title,
+          achievements: get().achievements.map(a => a.name),
         }).catch(() => {});
       }
     },
@@ -508,6 +509,7 @@ const useStore = create((set, get) => {
           xp: updated.xp,
           level: updated.level,
           title: updated.title,
+          achievements: get().achievements.map(a => a.name),
         }).catch(() => {});
       }
     },
@@ -569,6 +571,7 @@ const useStore = create((set, get) => {
           xp: updated.xp,
           level: updated.level,
           title: updated.title,
+          achievements: get().achievements.map(a => a.name),
         }).catch(() => {});
       }
     },
@@ -602,6 +605,12 @@ const useStore = create((set, get) => {
     unlockAchievement: (name) => {
       set(state => {
         if (state.achievements.find(a => a.name === name)) return state;
+        const newXP = state.user.xp + 50;
+        const newLevel = Math.floor(newXP / 100) + 1;
+        const titles = ['Bronze Saver', 'Silver Saver', 'Gold Saver', 'Diamond Saver', 'Treasure Master'];
+        const titleIdx = Math.min(Math.floor((newLevel - 1) / 2), titles.length - 1);
+        const title = titles[titleIdx];
+
         const newState = {
           ...state,
           achievements: [
@@ -610,12 +619,24 @@ const useStore = create((set, get) => {
           ],
           user: {
             ...state.user,
-            xp: state.user.xp + 50,
+            xp: newXP,
+            level: newLevel,
+            title,
           },
         };
         saveState(newState);
         return newState;
       });
+
+      const updated = get().user;
+      if (isApiEnabled()) {
+        syncProfile({
+          xp: updated.xp,
+          level: updated.level,
+          title: updated.title,
+          achievements: get().achievements.map(a => a.name),
+        }).catch(() => {});
+      }
     },
 
     /* ---- Notifications ---- */

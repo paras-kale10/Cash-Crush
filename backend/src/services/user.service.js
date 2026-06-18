@@ -46,18 +46,44 @@ export async function getUserProfile(userId) {
 }
 
 export async function updateUserProfile(userId, data) {
+  const userUpdate = {
+    ...(data.username !== undefined && { username: data.username }),
+    ...(data.avatar !== undefined && { avatar: data.avatar }),
+    ...(data.monthlyIncome !== undefined && { monthlyIncome: data.monthlyIncome }),
+    ...(data.salaryDate !== undefined && { salaryDate: data.salaryDate }),
+    ...(data.isOnboarded !== undefined && { isOnboarded: data.isOnboarded }),
+    ...(data.level !== undefined && { level: data.level }),
+    ...(data.xp !== undefined && { xp: data.xp }),
+    ...(data.title !== undefined && { title: data.title }),
+  };
+
+  if (data.achievements !== undefined) {
+    const allAchievements = await prisma.achievement.findMany();
+    for (const name of data.achievements) {
+      const match = allAchievements.find(
+        (a) => a.name.toLowerCase() === name.toLowerCase()
+      );
+      if (match) {
+        await prisma.userAchievement.upsert({
+          where: {
+            userId_achievementId: {
+              userId,
+              achievementId: match.id,
+            },
+          },
+          update: {},
+          create: {
+            userId,
+            achievementId: match.id,
+          },
+        });
+      }
+    }
+  }
+
   const user = await prisma.user.update({
     where: { id: userId },
-    data: {
-      ...(data.username !== undefined && { username: data.username }),
-      ...(data.avatar !== undefined && { avatar: data.avatar }),
-      ...(data.monthlyIncome !== undefined && { monthlyIncome: data.monthlyIncome }),
-      ...(data.salaryDate !== undefined && { salaryDate: data.salaryDate }),
-      ...(data.isOnboarded !== undefined && { isOnboarded: data.isOnboarded }),
-      ...(data.level !== undefined && { level: data.level }),
-      ...(data.xp !== undefined && { xp: data.xp }),
-      ...(data.title !== undefined && { title: data.title }),
-    },
+    data: userUpdate,
     select: userProfileSelect,
   });
   return formatProfile(user);

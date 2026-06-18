@@ -140,7 +140,7 @@ export async function syncCreateGoal(goal) {
       name: goal.name,
       targetAmount: Number(goal.targetAmount),
       currentAmount: Number(goal.currentAmount ?? 0),
-      deadline: goal.deadline || null,
+      deadline: goal.deadline ? new Date(goal.deadline).toISOString() : null,
     });
     return {
       id: created.id,
@@ -163,7 +163,7 @@ export async function syncUpdateGoal(id, updates) {
       ...(updates.name !== undefined && { name: updates.name }),
       ...(updates.targetAmount !== undefined && { targetAmount: Number(updates.targetAmount) }),
       ...(updates.currentAmount !== undefined && { currentAmount: Number(updates.currentAmount) }),
-      ...(updates.deadline !== undefined && { deadline: updates.deadline }),
+      ...(updates.deadline !== undefined && { deadline: updates.deadline ? new Date(updates.deadline).toISOString() : null }),
     });
   } catch (err) {
     logSyncError('goal update', err);
