@@ -15,6 +15,7 @@ import VaultPage from './pages/VaultPage';
 import AchievementsPage from './pages/AchievementsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ProfilePage from './pages/ProfilePage';
+import IncomePage from './pages/IncomePage';
 
 function App() {
   const restoreSession = useStore((s) => s.restoreSession);
@@ -66,6 +67,7 @@ function App() {
           <Route path="/achievements" element={<AchievementsPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/income" element={<IncomePage />} />
         </Route>
 
         {/* Catch-all - redirect to home */}

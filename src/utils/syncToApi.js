@@ -190,3 +190,55 @@ export async function syncVaultDeposit(amount) {
     throw err;
   }
 }
+
+export async function syncCreateIncome(income) {
+  if (!isApiEnabled()) return null;
+  try {
+    const created = await transactionApi.create({
+      type: 'INCOME',
+      name: income.name,
+      amount: Number(income.amount),
+      category: income.source || 'Other',
+      date: income.date,
+      notes: income.notes || '',
+    });
+    return {
+      id: created.id,
+      name: created.name,
+      amount: created.amount,
+      source: created.category || 'Other',
+      date: created.date,
+      notes: created.notes || '',
+    };
+  } catch (err) {
+    logSyncError('income create', err);
+    throw err;
+  }
+}
+
+export async function syncUpdateIncome(id, updates) {
+  if (!isApiEnabled() || !isApiId(id)) return;
+  try {
+    await transactionApi.update(id, {
+      ...(updates.name !== undefined && { name: updates.name }),
+      ...(updates.amount !== undefined && { amount: Number(updates.amount) }),
+      ...(updates.source !== undefined && { category: updates.source }),
+      ...(updates.date !== undefined && { date: updates.date }),
+      ...(updates.notes !== undefined && { notes: updates.notes }),
+    });
+  } catch (err) {
+    logSyncError('income update', err);
+    throw err;
+  }
+}
+
+export async function syncDeleteIncome(id) {
+  if (!isApiEnabled() || !isApiId(id)) return;
+  try {
+    await transactionApi.delete(id);
+  } catch (err) {
+    logSyncError('income delete', err);
+    throw err;
+  }
+}
+

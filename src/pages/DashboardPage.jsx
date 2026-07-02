@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Plus, TrendingUp, ArrowRight, Zap, Heart } from 'lucide-react';
+import { Plus, TrendingUp, ArrowRight, Zap, Heart, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
 import FinancialHealthCard from '../components/dashboard/FinancialHealthCard';
@@ -122,6 +122,40 @@ export default function DashboardPage() {
         >
           <Plus size={24} />
           Add Expense
+        </motion.button>
+
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          onClick={() => navigate('/income')}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          style={{
+            padding: '1rem',
+            borderRadius: '0.75rem',
+            border: 'none',
+            background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)',
+            color: '#10B981',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.15) 100%)';
+            e.currentTarget.style.boxShadow = '0 0 15px rgba(16, 185, 129, 0.3)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
+        >
+          <Wallet size={24} />
+          Add Money
         </motion.button>
 
         <motion.button

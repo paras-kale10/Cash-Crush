@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  Wallet,
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { getAvatarEmoji } from '../../utils/avatars';
@@ -23,6 +24,7 @@ const navItems = [
   { label: 'Treasure Vault', icon: Lock, path: '/vault' },
   { label: 'Bills', icon: Receipt, path: '/bills' },
   { label: 'Expenses', icon: CreditCard, path: '/expenses' },
+  { label: 'Add Money', icon: Wallet, path: '/income' },
   { label: 'Goals', icon: Target, path: '/goals' },
   { label: 'Analytics', icon: BarChart3, path: '/analytics' },
   { label: 'Achievements', icon: Trophy, path: '/achievements' },

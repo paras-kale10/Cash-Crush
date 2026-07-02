@@ -18,6 +18,9 @@ import {
   syncUpdateGoal,
   syncDeleteGoal,
   syncVaultDeposit,
+  syncCreateIncome,
+  syncUpdateIncome,
+  syncDeleteIncome,
 } from '../utils/syncToApi.js';
 
 /* ============================================
@@ -98,6 +101,10 @@ const defaultState = {
   // Goals
   goals: [],
   // Each: { id, name, targetAmount, currentAmount, deadline, createdAt }
+
+  // Extra Incomes (money from here and there)
+  incomes: [],
+  // Each: { id, name, amount, source, date, notes }
 
   // Achievements
   achievements: [],
@@ -514,6 +521,52 @@ const useStore = create((set, get) => {
       }
     },
 
+    /* ---- Extra Income ---- */
+    addIncome: async (income) => {
+      let newIncome = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        ...income,
+      };
+      const synced = await syncCreateIncome(newIncome);
+      if (synced) newIncome = synced;
+
+      set(state => {
+        const newState = {
+          ...state,
+          incomes: [newIncome, ...state.incomes],
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    updateIncome: async (id, updates) => {
+      await syncUpdateIncome(id, updates);
+      set(state => {
+        const newState = {
+          ...state,
+          incomes: state.incomes.map(i =>
+            i.id === id ? { ...i, ...updates } : i
+          ),
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    deleteIncome: async (id) => {
+      await syncDeleteIncome(id);
+      set(state => {
+        const newState = {
+          ...state,
+          incomes: state.incomes.filter(i => i.id !== id),
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
     /* ---- Vault ---- */
     addToVault: async (amount) => {
       const depositAmount = Number(amount);
@@ -745,9 +798,19 @@ const useStore = create((set, get) => {
       return Object.entries(cats).map(([name, value]) => ({ name, value }));
     },
 
+    getTotalIncomeThisMonth: () => {
+      const now = new Date();
+      return get().incomes
+        .filter(i => {
+          const d = new Date(i.date);
+          return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        })
+        .reduce((sum, i) => sum + Number(i.amount), 0);
+    },
+
     getSafeSpendingBudget: () => {
       const state = get();
-      return state.monthlyIncome - state.vault.monthlyContribution - state.getTotalPaidBills();
+      return state.monthlyIncome + state.getTotalIncomeThisMonth() - state.vault.monthlyContribution - state.getTotalPaidBills();
     },
 
     getRemainingBudget: () => {

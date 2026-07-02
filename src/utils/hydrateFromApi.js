@@ -26,6 +26,17 @@ export function mapProfileToStore(profile, transactions) {
       isPaid: t.isPaid,
     }));
 
+  const incomes = (transactions?.items || transactions || [])
+    .filter((t) => t.type === 'INCOME')
+    .map((t) => ({
+      id: t.id,
+      name: t.name,
+      amount: t.amount,
+      source: t.category || 'Other',
+      date: t.date,
+      notes: t.notes || '',
+    }));
+
   const vault = profile.securityVault || {
     monthlyContribution: 0,
     currentSavings: 0,
@@ -58,6 +69,7 @@ export function mapProfileToStore(profile, transactions) {
     },
     expenses,
     bills,
+    incomes,
     goals: [], // filled separately
     achievements: (profile.achievements || []).map((a) => ({
       id: a.slug,
