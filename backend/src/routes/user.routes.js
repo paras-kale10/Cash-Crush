@@ -9,5 +9,6 @@ const router = Router();
 router.use(authenticate);
 router.get('/profile', userController.getProfile);
 router.patch('/profile', validate(updateProfileSchema), userController.updateProfile);
+router.post('/profile/reset', userController.resetProfile);
 
 export default router;

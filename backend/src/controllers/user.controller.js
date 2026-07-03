@@ -17,3 +17,12 @@ export async function updateProfile(req, res, next) {
     next(err);
   }
 }
+
+export async function resetProfile(req, res, next) {
+  try {
+    const profile = await userService.resetUserProfile(req.user.id);
+    res.json({ success: true, data: profile });
+  } catch (err) {
+    next(err);
+  }
+}

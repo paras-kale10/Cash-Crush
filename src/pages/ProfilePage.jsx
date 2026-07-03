@@ -66,11 +66,11 @@ export default function ProfilePage() {
     setEditing(false);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (window.confirm('⚠️ Are you sure you want to reset ALL data? This action cannot be undone!')) {
       if (window.confirm('This will permanently delete all your expenses, goals, bills, vault data, and achievements. Proceed?')) {
-        if (resetAll) resetAll();
-        navigate('/');
+        if (resetAll) await resetAll();
+        navigate('/onboarding');
       }
     }
   };

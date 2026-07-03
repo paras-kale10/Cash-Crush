@@ -13,6 +13,8 @@ export const userApi = {
   getProfile: () => apiRequest('/users/profile'),
   updateProfile: (body) =>
     apiRequest('/users/profile', { method: 'PATCH', body: JSON.stringify(body) }),
+  resetAll: () =>
+    apiRequest('/users/profile/reset', { method: 'POST' }),
 };
 
 // ── Transactions ──

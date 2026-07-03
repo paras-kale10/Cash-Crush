@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { checkAchievements, ALL_ACHIEVEMENTS } from '../utils/achievements';
 import { isApiEnabled, setToken, getToken } from '../api/client.js';
-import { authApi } from '../api/services.js';
+import { authApi, userApi } from '../api/services.js';
 import { migrateLegacyDataIfNeeded } from '../utils/migrateLocalStorage.js';
 import { fetchFullUserState } from '../utils/hydrateFromApi.js';
 import { normalizeAvatar } from '../utils/avatars.js';
@@ -751,9 +751,29 @@ const useStore = create((set, get) => {
     },
 
     /* ---- Reset ---- */
-    resetAll: () => {
+    resetAll: async () => {
+      if (isApiEnabled()) {
+        try {
+          await userApi.resetAll();
+        } catch (e) {
+          console.warn('API reset failed:', e);
+        }
+      }
       localStorage.removeItem(STORAGE_KEY);
-      set(defaultState);
+      set((state) => {
+        const newState = {
+          ...defaultState,
+          isLoggedIn: state.isLoggedIn,
+          user: {
+            ...defaultState.user,
+            username: state.user.username,
+            email: state.user.email,
+            createdAt: state.user.createdAt,
+          },
+        };
+        saveState(newState);
+        return newState;
+      });
     },
 
     /* ---- Computed Getters ---- */

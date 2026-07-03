@@ -115,3 +115,44 @@ function formatProfile(user) {
     userAchievements: undefined,
   };
 }
+
+export async function resetUserProfile(userId) {
+  return prisma.$transaction(async (tx) => {
+    // 1. Delete transactions
+    await tx.transaction.deleteMany({ where: { userId } });
+
+    // 2. Delete goals
+    await tx.goal.deleteMany({ where: { userId } });
+
+    // 3. Delete achievements
+    await tx.userAchievement.deleteMany({ where: { userId } });
+
+    // 4. Reset vault & delete history
+    const vault = await tx.securityVault.findUnique({ where: { userId } });
+    if (vault) {
+      await tx.vaultHistory.deleteMany({ where: { vaultId: vault.id } });
+      await tx.securityVault.update({
+        where: { id: vault.id },
+        data: { monthlyContribution: 0, currentSavings: 0 },
+      });
+    }
+
+    // 5. Update user profile to default values
+    const user = await tx.user.update({
+      where: { id: userId },
+      data: {
+        avatar: 'adventurer',
+        level: 1,
+        xp: 0,
+        title: 'Bronze Saver',
+        monthlyIncome: 0,
+        salaryDate: 1,
+        isOnboarded: false,
+        migratedFromLocal: false,
+      },
+      select: userProfileSelect,
+    });
+
+    return formatProfile(user);
+  });
+}
