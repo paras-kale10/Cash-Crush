@@ -24,6 +24,7 @@ model User {
   level             Int      @default(1)
   xp                Int      @default(0)
   title             String   @default("Bronze Saver")
+  initialBalance    Decimal  @default(0) @db.Decimal(14, 2)
   monthlyIncome     Decimal  @default(0) @db.Decimal(14, 2)
   salaryDate        Int      @default(1)
   isOnboarded       Boolean  @default(false)

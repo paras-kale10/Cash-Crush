@@ -20,6 +20,7 @@ export const updateProfileSchema = z.object({
     username: z.string().min(2).max(50).trim().optional(),
     avatar: z.string().min(1).max(50).optional(),
     monthlyIncome: z.number().min(0).optional(),
+    initialBalance: z.number().min(0).optional(),
     salaryDate: z.number().int().min(1).max(31).optional(),
     isOnboarded: z.boolean().optional(),
     level: z.number().int().min(1).optional(),

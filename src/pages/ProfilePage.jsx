@@ -9,6 +9,7 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const user = useStore((s) => s.user) || {};
   const monthlyIncome = useStore((s) => s.monthlyIncome) || 0;
+  const initialBalance = useStore((s) => s.initialBalance) || 0;
   const salaryDate = useStore((s) => s.salaryDate) || 1;
   const vault = useStore((s) => s.vault);
   const goals = useStore((s) => s.goals) || [];
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const level = user.level || 1;
   const updateProfile = useStore((s) => s.updateProfile);
   const setMonthlyIncome = useStore((s) => s.setMonthlyIncome);
+  const setInitialBalance = useStore((s) => s.setInitialBalance);
   const setSalaryDate = useStore((s) => s.setSalaryDate);
   const resetAll = useStore((s) => s.resetAll);
 
@@ -24,6 +26,7 @@ export default function ProfilePage() {
   const [editUsername, setEditUsername] = useState(user.username || '');
   const [editAvatar, setEditAvatar] = useState(user.avatar || 'adventurer');
   const [editIncome, setEditIncome] = useState(monthlyIncome);
+  const [editInitialBalance, setEditInitialBalance] = useState(initialBalance);
   const [editSalaryDate, setEditSalaryDate] = useState(salaryDate);
 
   const totalSavings = vault?.currentSavings ?? 0;
@@ -62,6 +65,9 @@ export default function ProfilePage() {
     }
     if (setMonthlyIncome) {
       setMonthlyIncome(parseFloat(editIncome) || 0);
+    }
+    if (setInitialBalance) {
+      setInitialBalance(parseFloat(editInitialBalance) || 0);
     }
     setEditing(false);
   };
@@ -198,6 +204,7 @@ export default function ProfilePage() {
                 setEditUsername(user.username || user.name || '');
                 setEditAvatar(user.avatar || 'pirate');
                 setEditIncome(monthlyIncome);
+                setEditInitialBalance(initialBalance);
                 setEditSalaryDate(salaryDate);
                 setEditing(true);
               }}
@@ -239,6 +246,16 @@ export default function ProfilePage() {
                   type="number"
                   value={editIncome}
                   onChange={(e) => setEditIncome(e.target.value)}
+                  min="0"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Starting Balance (₹)</label>
+                <input
+                  type="number"
+                  value={editInitialBalance}
+                  onChange={(e) => setEditInitialBalance(e.target.value)}
                   min="0"
                   style={inputStyle}
                 />
@@ -324,6 +341,10 @@ export default function ProfilePage() {
             <div>
               <p style={{ color: '#64748B', fontSize: '0.8rem' }}>Monthly Income</p>
               <p style={{ color: '#F8FAFC', fontWeight: 500 }}>₹{monthlyIncome.toLocaleString('en-IN')}</p>
+            </div>
+            <div>
+              <p style={{ color: '#64748B', fontSize: '0.8rem' }}>Starting Balance</p>
+              <p style={{ color: '#F8FAFC', fontWeight: 500 }}>₹{initialBalance.toLocaleString('en-IN')}</p>
             </div>
             <div>
               <p style={{ color: '#64748B', fontSize: '0.8rem' }}>Salary Date</p>

@@ -46,6 +46,7 @@ export function mapProfileToStore(profile, transactions) {
   return {
     isLoggedIn: true,
     isOnboarded: profile.isOnboarded,
+    initialBalance: Number(profile.initialBalance) || 0,
     user: {
       username: profile.username,
       email: profile.email,

@@ -35,6 +35,7 @@ export async function migrateLocalStorageData(userId, localData) {
         xp: profile.xp ?? user.xp,
         title: profile.title || user.title,
         monthlyIncome: localData.monthlyIncome ?? Number(user.monthlyIncome),
+        initialBalance: localData.initialBalance ?? Number(user.initialBalance),
         salaryDate: localData.salaryDate ?? user.salaryDate,
         isOnboarded: localData.isOnboarded ?? user.isOnboarded,
         migratedFromLocal: true,

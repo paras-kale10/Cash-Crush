@@ -17,8 +17,10 @@ export default function DashboardPage() {
   const expenses = useStore((s) => s.expenses);
   const vault = useStore((s) => s.vault);
   const getRemainingBudget = useStore((s) => s.getRemainingBudget);
+  const getCurrentBalance = useStore((s) => s.getCurrentBalance);
 
   const remaining = getRemainingBudget();
+  const currentBalance = getCurrentBalance();
   const savingsRate = monthlyIncome > 0 ? (remaining / monthlyIncome * 100) : 0;
 
   return (
@@ -83,6 +85,10 @@ export default function DashboardPage() {
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 }} style={{ background: 'rgba(59, 130, 246, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
               <p style={{ color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Savings Rate</p>
               <p style={{ color: '#3B82F6', fontWeight: 700, fontSize: '1.5rem' }}>{savingsRate.toFixed(1)}%</p>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} style={{ background: 'rgba(251, 191, 36, 0.1)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(251, 191, 36, 0.2)' }}>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Account Balance</p>
+              <p style={{ color: '#FBBF24', fontWeight: 700, fontSize: '1.5rem' }}>₹{currentBalance.toLocaleString('en-IN')}</p>
             </motion.div>
           </div>
         </div>

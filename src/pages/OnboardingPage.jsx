@@ -278,16 +278,27 @@ const AvatarStep = ({ selected, onSelect }) => (
 );
 
 /* ───────── Step 2 – Monthly Income ───────── */
-const IncomeStep = ({ income, setIncome, salaryDate, setSalaryDate }) => (
+const IncomeStep = ({ income, setIncome, salaryDate, setSalaryDate, initialBalance, setInitialBalance }) => (
   <div className="max-w-md mx-auto">
     <StepHeader
       icon={Wallet}
       color="#3B82F6"
-      title="Monthly Income"
-      subtitle="How much treasure flows into your vault each month?"
+      title="Treasure Setup"
+      subtitle="Define your starting money and monthly income"
     />
 
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div>
+        <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Current Account Balance
+        </label>
+        <CurrencyInput
+          value={initialBalance}
+          onChange={(e) => setInitialBalance(e.target.value)}
+          placeholder="25,000"
+        />
+      </div>
+
       <div>
         <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#94A3B8', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Monthly Income
@@ -334,7 +345,7 @@ const IncomeStep = ({ income, setIncome, salaryDate, setSalaryDate }) => (
       </div>
     </div>
 
-    {income && (
+    {(income || initialBalance) && (
       <motion.div
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -345,28 +356,49 @@ const IncomeStep = ({ income, setIncome, salaryDate, setSalaryDate }) => (
           background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(251,191,36,0.08))',
           border: '1px solid rgba(59,130,246,0.25)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
+          flexDirection: 'column',
+          gap: '0.75rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ padding: '0.5rem', borderRadius: '0.75rem', background: 'rgba(59,130,246,0.15)' }}>
-            <TrendingUp size={20} color="#3B82F6" />
+        {initialBalance && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ padding: '0.5rem', borderRadius: '0.75rem', background: 'rgba(59,130,246,0.15)' }}>
+                <Wallet size={20} color="#3B82F6" />
+              </div>
+              <div>
+                <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Starting Balance
+                </p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#FBBF24', fontFamily: "'Poppins', sans-serif" }}>
+                  {fmt(initialBalance)}
+                </p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Your monthly income
-            </p>
-            <p style={{ fontSize: '1.5rem', fontWeight: 700, color: '#FBBF24', fontFamily: "'Poppins', sans-serif" }}>
-              {fmt(income)}
-            </p>
-          </div>
-        </div>
-        {salaryDate && (
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: '0.7rem', color: '#64748B' }}>Payday</p>
-            <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#3B82F6' }}>Day {salaryDate}</p>
+        )}
+
+        {income && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', borderTop: initialBalance ? '1px solid rgba(255,255,255,0.06)' : 'none', paddingTop: initialBalance ? '0.75rem' : 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ padding: '0.5rem', borderRadius: '0.75rem', background: 'rgba(16,185,129,0.15)' }}>
+                <TrendingUp size={20} color="#10B981" />
+              </div>
+              <div>
+                <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Monthly Salary
+                </p>
+                <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#FBBF24', fontFamily: "'Poppins', sans-serif" }}>
+                  {fmt(income)}
+                </p>
+              </div>
+            </div>
+            {salaryDate && (
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ fontSize: '0.7rem', color: '#64748B' }}>Payday</p>
+                <p style={{ fontSize: '0.95rem', fontWeight: 600, color: '#3B82F6' }}>Day {salaryDate}</p>
+              </div>
+            )}
           </div>
         )}
       </motion.div>
@@ -569,12 +601,14 @@ const BillsStep = ({ bills, onAdd, onDelete }) => {
 };
 
 /* ───────── Step 5 – Summary ───────── */
-const SummaryStep = ({ income, vault, bills }) => {
+const SummaryStep = ({ income, vault, bills, initialBalance }) => {
   const totalBills = bills.reduce((sum, b) => sum + b.amount, 0);
   const safeSpending = Number(income) - Number(vault) - totalBills;
+  const projectedBalance = Number(initialBalance) + safeSpending;
 
   const rows = [
-    { icon: Wallet, color: '#FBBF24', label: 'Income', value: fmt(income), positive: true },
+    { icon: Wallet, color: '#3B82F6', label: 'Starting Balance', value: fmt(initialBalance), positive: true },
+    { icon: TrendingUp, color: '#FBBF24', label: 'Monthly Income', value: fmt(income), positive: true },
     { icon: Shield, color: '#10B981', label: 'Vault Savings', value: `-${fmt(vault)}`, positive: false },
     { icon: Receipt, color: '#F97316', label: `Bills (${bills.length})`, value: `-${fmt(totalBills)}`, positive: false },
   ];
@@ -627,29 +661,57 @@ const SummaryStep = ({ income, vault, bills }) => {
           style={{
             marginTop: '0.5rem',
             borderRadius: '1.25rem',
-            padding: '1.5rem',
-            textAlign: 'center',
-            background: safeSpending >= 0
-              ? 'linear-gradient(160deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05))'
-              : 'linear-gradient(160deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05))',
-            border: safeSpending >= 0 ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)',
-            boxShadow: safeSpending >= 0 ? '0 0 40px rgba(16,185,129,0.1)' : '0 0 40px rgba(239,68,68,0.1)',
+            padding: '1.25rem',
+            background: 'linear-gradient(160deg, rgba(30,30,60,0.6), rgba(15,15,35,0.8))',
+            border: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
           }}
         >
-          <p style={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Safe Spending
-          </p>
-          <p style={{ fontSize: '2.25rem', fontWeight: 700, color: safeSpending >= 0 ? '#10B981' : '#EF4444', fontFamily: "'Poppins', sans-serif", margin: '0.25rem 0' }}>
-            {fmt(safeSpending)}
-          </p>
-          <p style={{ fontSize: '0.8rem', color: '#64748B' }}>
-            {safeSpending >= 0 ? 'Available for guilt-free spending!' : 'Your expenses exceed your income!'}
-          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{
+              background: safeSpending >= 0 ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)',
+              border: safeSpending >= 0 ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(239,68,68,0.2)',
+              borderRadius: '1rem',
+              padding: '1rem',
+              textAlign: 'center',
+            }}>
+              <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Safe Spending
+              </p>
+              <p style={{ fontSize: '1.5rem', fontWeight: 700, color: safeSpending >= 0 ? '#10B981' : '#EF4444', fontFamily: "'Poppins', sans-serif", margin: 0 }}>
+                {fmt(safeSpending)}
+              </p>
+              <p style={{ fontSize: '0.65rem', color: '#64748B', marginTop: '4px' }}>
+                Monthly Allowance
+              </p>
+            </div>
+            
+            <div style={{
+              background: projectedBalance >= 0 ? 'rgba(59,130,246,0.06)' : 'rgba(239,68,68,0.06)',
+              border: projectedBalance >= 0 ? '1px solid rgba(59,130,246,0.2)' : '1px solid rgba(239,68,68,0.2)',
+              borderRadius: '1rem',
+              padding: '1rem',
+              textAlign: 'center',
+            }}>
+              <p style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '4px' }}>
+                Projected Balance
+              </p>
+              <p style={{ fontSize: '1.5rem', fontWeight: 700, color: projectedBalance >= 0 ? '#3B82F6' : '#EF4444', fontFamily: "'Poppins', sans-serif", margin: 0 }}>
+                {fmt(projectedBalance)}
+              </p>
+              <p style={{ fontSize: '0.65rem', color: '#64748B', marginTop: '4px' }}>
+                End of Month Est.
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>
   );
 };
+
 
 /* ───────── Main Onboarding Page ───────── */
 export default function OnboardingPage() {
@@ -661,6 +723,7 @@ export default function OnboardingPage() {
   const [direction, setDirection] = useState(1);
 
   const [selectedAvatar, setSelectedAvatar] = useState('');
+  const [initialBalance, setInitialBalance] = useState('');
   const [income, setIncome] = useState('');
   const [salaryDate, setSalaryDate] = useState('');
   const [vaultAmount, setVaultAmount] = useState('');
@@ -693,6 +756,7 @@ export default function OnboardingPage() {
   const handleFinish = async () => {
     setIsSaving(true);
     try {
+      await store.setInitialBalance(Number(initialBalance));
       await store.setMonthlyIncome(Number(income));
       await store.setSalaryDate(Number(salaryDate));
       await store.setVaultContribution(Number(vaultAmount));
@@ -708,7 +772,7 @@ export default function OnboardingPage() {
   const canProceed = () => {
     switch (step) {
       case 0: return !!selectedAvatar;
-      case 1: return !!income && !!salaryDate;
+      case 1: return !!income && !!salaryDate && initialBalance !== '';
       case 2: return !!vaultAmount;
       case 3:
       case 4: return true;
@@ -721,13 +785,22 @@ export default function OnboardingPage() {
       case 0:
         return <AvatarStep selected={selectedAvatar} onSelect={handleAvatarSelect} />;
       case 1:
-        return <IncomeStep income={income} setIncome={setIncome} salaryDate={salaryDate} setSalaryDate={setSalaryDate} />;
+        return (
+          <IncomeStep
+            income={income}
+            setIncome={setIncome}
+            salaryDate={salaryDate}
+            setSalaryDate={setSalaryDate}
+            initialBalance={initialBalance}
+            setInitialBalance={setInitialBalance}
+          />
+        );
       case 2:
         return <VaultStep amount={vaultAmount} setAmount={setVaultAmount} />;
       case 3:
         return <BillsStep bills={bills} onAdd={handleAddBill} onDelete={handleDeleteBill} />;
       case 4:
-        return <SummaryStep income={income} vault={vaultAmount} bills={bills} />;
+        return <SummaryStep income={income} vault={vaultAmount} bills={bills} initialBalance={initialBalance} />;
       default:
         return null;
     }

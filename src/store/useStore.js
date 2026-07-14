@@ -80,6 +80,7 @@ const defaultState = {
   },
 
   // Income
+  initialBalance: 0,
   monthlyIncome: 0,
   salaryDate: 1, // day of month
 
@@ -247,6 +248,16 @@ const useStore = create((set, get) => {
       await syncProfile({ monthlyIncome });
       set(state => {
         const newState = { ...state, monthlyIncome };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    setInitialBalance: async (amount) => {
+      const initialBalance = Number(amount);
+      await syncProfile({ initialBalance });
+      set(state => {
+        const newState = { ...state, initialBalance };
         saveState(newState);
         return newState;
       });
@@ -831,6 +842,30 @@ const useStore = create((set, get) => {
     getSafeSpendingBudget: () => {
       const state = get();
       return state.monthlyIncome + state.getTotalIncomeThisMonth() - state.vault.monthlyContribution - state.getTotalPaidBills();
+    },
+
+    getCurrentBalance: () => {
+      const state = get();
+      const initial = Number(state.initialBalance) || 0;
+      const now = new Date();
+      const salaryDay = state.salaryDate || 1;
+      const salaryReceived = now.getDate() >= salaryDay;
+      const salaryAdd = salaryReceived ? Number(state.monthlyIncome || 0) : 0;
+      
+      const extraIncome = state.getTotalIncomeThisMonth();
+      const expenses = state.getTotalExpensesThisMonth();
+      const paidBills = state.getTotalPaidBills();
+      
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const vaultDeposits = (state.vault?.history || [])
+        .filter(h => {
+          const d = new Date(h.date);
+          return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((sum, h) => sum + Number(h.amount), 0);
+
+      return initial + salaryAdd + extraIncome - expenses - paidBills - vaultDeposits;
     },
 
     getRemainingBudget: () => {

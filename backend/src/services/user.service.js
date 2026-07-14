@@ -9,6 +9,7 @@ const userProfileSelect = {
   level: true,
   xp: true,
   title: true,
+  initialBalance: true,
   monthlyIncome: true,
   salaryDate: true,
   isOnboarded: true,
@@ -50,6 +51,7 @@ export async function updateUserProfile(userId, data) {
     ...(data.username !== undefined && { username: data.username }),
     ...(data.avatar !== undefined && { avatar: data.avatar }),
     ...(data.monthlyIncome !== undefined && { monthlyIncome: data.monthlyIncome }),
+    ...(data.initialBalance !== undefined && { initialBalance: data.initialBalance }),
     ...(data.salaryDate !== undefined && { salaryDate: data.salaryDate }),
     ...(data.isOnboarded !== undefined && { isOnboarded: data.isOnboarded }),
     ...(data.level !== undefined && { level: data.level }),
@@ -92,6 +94,7 @@ export async function updateUserProfile(userId, data) {
 function formatProfile(user) {
   return {
     ...user,
+    initialBalance: Number(user.initialBalance || 0),
     monthlyIncome: Number(user.monthlyIncome),
     securityVault: user.securityVault
       ? {
