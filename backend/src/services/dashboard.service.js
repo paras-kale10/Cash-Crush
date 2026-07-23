@@ -49,12 +49,12 @@ export async function getDashboardStats(userId) {
   const paidBillsCount = paidBillsList.length;
   const paidBillsAmount = paidBillsList.reduce((s, b) => s + Number(b.amount), 0);
 
-  const safeSpendingBudget = monthlyIncome - vaultContribution - totalBills;
-  const remainingBudget = safeSpendingBudget - totalExpensesThisMonth;
-
   const salaryDay = user?.salaryDate ?? 1;
   const salaryReceived = now.getDate() >= salaryDay;
   const salaryAdd = salaryReceived ? monthlyIncome : 0;
+
+  const safeSpendingBudget = salaryAdd + totalExtraIncomeThisMonth - vaultContribution - totalBills;
+  const remainingBudget = safeSpendingBudget - totalExpensesThisMonth;
 
   const currentBalance = initialBalance + salaryAdd + totalExtraIncomeThisMonth - totalExpensesThisMonth - paidBillsAmount - totalVaultDepositsThisMonth;
 

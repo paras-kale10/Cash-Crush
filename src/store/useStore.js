@@ -841,14 +841,19 @@ const useStore = create((set, get) => {
 
     getSafeSpendingBudget: () => {
       const state = get();
-      return state.monthlyIncome + state.getTotalIncomeThisMonth() - state.vault.monthlyContribution - state.getTotalPaidBills();
+      const now = new Date();
+      const salaryDay = Number(state.salaryDate) || 1;
+      const salaryReceived = now.getDate() >= salaryDay;
+      const salaryAdd = salaryReceived ? Number(state.monthlyIncome || 0) : 0;
+
+      return salaryAdd + state.getTotalIncomeThisMonth() - state.vault.monthlyContribution - state.getTotalPaidBills();
     },
 
     getCurrentBalance: () => {
       const state = get();
       const initial = Number(state.initialBalance) || 0;
       const now = new Date();
-      const salaryDay = state.salaryDate || 1;
+      const salaryDay = Number(state.salaryDate) || 1;
       const salaryReceived = now.getDate() >= salaryDay;
       const salaryAdd = salaryReceived ? Number(state.monthlyIncome || 0) : 0;
       

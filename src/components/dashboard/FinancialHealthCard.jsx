@@ -6,6 +6,7 @@ import useStore from '../../store/useStore';
 const FinancialHealthCard = () => {
   const {
     getFinancialHealthScore,
+    getCurrentBalance,
     getRemainingBudget,
     getDaysUntilSalary,
     getDailySpendingLimit,
@@ -14,6 +15,7 @@ const FinancialHealthCard = () => {
   } = useStore();
 
   const score = getFinancialHealthScore();
+  const accountBalance = getCurrentBalance();
   const remainingBudget = getRemainingBudget();
   const daysUntilSalary = getDaysUntilSalary();
   const dailyLimit = getDailySpendingLimit();
@@ -166,7 +168,7 @@ const FinancialHealthCard = () => {
           marginBottom: '1.25rem',
         }}
       >
-        {/* Remaining Budget */}
+        {/* Account Balance */}
         <div
           style={{
             textAlign: 'center',
@@ -177,16 +179,16 @@ const FinancialHealthCard = () => {
         >
           <Wallet size={18} style={{ color: '#22C55E', marginBottom: '0.25rem' }} />
           <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', marginBottom: '2px' }}>
-            Balance
+            Account Balance
           </div>
           <div
             style={{
               fontSize: '0.9rem',
               fontWeight: 'bold',
-              color: remainingBudget >= 0 ? '#22C55E' : '#EF4444',
+              color: accountBalance >= 0 ? '#22C55E' : '#EF4444',
             }}
           >
-            {fmt(remainingBudget)}
+            {fmt(accountBalance)}
           </div>
         </div>
 
