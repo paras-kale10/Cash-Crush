@@ -107,6 +107,10 @@ const defaultState = {
   incomes: [],
   // Each: { id, name, amount, source, date, notes }
 
+  // Split money tracker
+  splitEntries: [],
+  // Each: { id, title, totalAmount, description, people: [{ id, name, share, isSettled, note }] }
+
   // Achievements
   achievements: [],
   // Each: { id, name, unlockedAt }
@@ -572,6 +576,61 @@ const useStore = create((set, get) => {
         const newState = {
           ...state,
           incomes: state.incomes.filter(i => i.id !== id),
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    /* ---- Split money ---- */
+    addSplitEntry: (entry) => {
+      const newEntry = {
+        id: Date.now().toString(),
+        ...entry,
+      };
+      set(state => {
+        const newState = {
+          ...state,
+          splitEntries: [newEntry, ...state.splitEntries],
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    updateSplitEntry: (id, updates) => {
+      set(state => {
+        const newState = {
+          ...state,
+          splitEntries: state.splitEntries.map(entry => entry.id === id ? { ...entry, ...updates } : entry),
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    deleteSplitEntry: (id) => {
+      set(state => {
+        const newState = {
+          ...state,
+          splitEntries: state.splitEntries.filter(entry => entry.id !== id),
+        };
+        saveState(newState);
+        return newState;
+      });
+    },
+
+    markSplitEntrySettled: (entryId, personId) => {
+      set(state => {
+        const newState = {
+          ...state,
+          splitEntries: state.splitEntries.map(entry => {
+            if (entry.id !== entryId) return entry;
+            return {
+              ...entry,
+              people: (entry.people || []).map(person => person.id === personId ? { ...person, isSettled: !person.isSettled } : person),
+            };
+          }),
         };
         saveState(newState);
         return newState;

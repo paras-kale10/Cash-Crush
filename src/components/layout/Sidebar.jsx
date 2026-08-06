@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Star,
   Wallet,
+  Split,
 } from 'lucide-react';
 import useStore from '../../store/useStore';
 import { getAvatarEmoji } from '../../utils/avatars';
@@ -25,6 +26,7 @@ const navItems = [
   { label: 'Bills', icon: Receipt, path: '/bills' },
   { label: 'Expenses', icon: CreditCard, path: '/expenses' },
   { label: 'Add Money', icon: Wallet, path: '/income' },
+  { label: 'Split Money', icon: Split, path: '/split' },
   { label: 'Goals', icon: Target, path: '/goals' },
   { label: 'Analytics', icon: BarChart3, path: '/analytics' },
   { label: 'Achievements', icon: Trophy, path: '/achievements' },

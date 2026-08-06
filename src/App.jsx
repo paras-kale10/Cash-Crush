@@ -16,6 +16,7 @@ import AchievementsPage from './pages/AchievementsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ProfilePage from './pages/ProfilePage';
 import IncomePage from './pages/IncomePage';
+import SplitPage from './pages/SplitPage';
 
 function App() {
   const restoreSession = useStore((s) => s.restoreSession);
@@ -68,6 +69,7 @@ function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/income" element={<IncomePage />} />
+          <Route path="/split" element={<SplitPage />} />
         </Route>
 
         {/* Catch-all - redirect to home */}
