@@ -11,7 +11,7 @@ export function setToken(token) {
 }
 
 export function isApiEnabled() {
-  return import.meta.env.VITE_USE_API === 'true';
+  return String(import.meta.env.VITE_USE_API || '').toLowerCase() === 'true';
 }
 
 export async function apiRequest(path, options = {}) {

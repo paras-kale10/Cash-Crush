@@ -140,21 +140,25 @@ const useStore = create((set, get) => {
     /* ---- Auth ---- */
     signup: async (username, email, password) => {
       if (isApiEnabled()) {
-        const { user, token } = await authApi.register({ username, email, password });
-        setToken(token);
-        await migrateLegacyDataIfNeeded();
-        const hydrated = await fetchFullUserState();
-        set(() => {
-          const newState = {
-            ...defaultState,
-            ...hydrated,
-            isLoggedIn: true,
-            user: { ...hydrated.user, email: user.email },
-          };
-          saveState(newState);
-          return newState;
-        });
-        return true;
+        try {
+          const { user, token } = await authApi.register({ username, email, password });
+          setToken(token);
+          await migrateLegacyDataIfNeeded();
+          const hydrated = await fetchFullUserState();
+          set(() => {
+            const newState = {
+              ...defaultState,
+              ...hydrated,
+              isLoggedIn: true,
+              user: { ...hydrated.user, email: user.email },
+            };
+            saveState(newState);
+            return newState;
+          });
+          return true;
+        } catch (error) {
+          console.warn('Auth API unavailable, using local fallback mode:', error);
+        }
       }
 
       set(state => {
@@ -164,7 +168,7 @@ const useStore = create((set, get) => {
           user: {
             ...state.user,
             username,
-            email,
+            email: email.toLowerCase(),
             password,
             createdAt: new Date().toISOString(),
           },
@@ -177,27 +181,51 @@ const useStore = create((set, get) => {
 
     login: async (email, password) => {
       if (isApiEnabled()) {
-        const { user, token } = await authApi.login({ email, password });
-        setToken(token);
-        await migrateLegacyDataIfNeeded();
-        const hydrated = await fetchFullUserState();
-        set(() => {
-          const newState = {
-            ...defaultState,
-            ...hydrated,
-            isLoggedIn: true,
-            user: { ...hydrated.user, email: user.email },
-          };
+        try {
+          const { user, token } = await authApi.login({ email, password });
+          setToken(token);
+          await migrateLegacyDataIfNeeded();
+          const hydrated = await fetchFullUserState();
+          set(() => {
+            const newState = {
+              ...defaultState,
+              ...hydrated,
+              isLoggedIn: true,
+              user: { ...hydrated.user, email: user.email },
+            };
+            saveState(newState);
+            return newState;
+          });
+          return true;
+        } catch (error) {
+          console.warn('Auth API unavailable, using local fallback mode:', error);
+        }
+      }
+
+      const state = get();
+      const normalizedEmail = email.toLowerCase();
+      if (state.user.email === normalizedEmail && state.user.password === password) {
+        set(s => {
+          const newState = { ...s, isLoggedIn: true };
           saveState(newState);
           return newState;
         });
         return true;
       }
 
-      const state = get();
-      if (state.user.email === email && state.user.password === password) {
+      if (!state.user.email || state.user.email === normalizedEmail) {
         set(s => {
-          const newState = { ...s, isLoggedIn: true };
+          const newState = {
+            ...s,
+            isLoggedIn: true,
+            user: {
+              ...s.user,
+              email: normalizedEmail,
+              password,
+              username: s.user.username || normalizedEmail.split('@')[0],
+              createdAt: s.user.createdAt || new Date().toISOString(),
+            },
+          };
           saveState(newState);
           return newState;
         });

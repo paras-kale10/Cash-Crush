@@ -86,6 +86,12 @@ API available at `http://localhost:3001/api`
 
 Health check: `GET http://localhost:3001/api/health`
 
+The API exits during startup if it cannot connect to PostgreSQL. Confirm that
+`DATABASE_URL` points to a reachable database and that migrations have been
+applied before starting the server. If the database disconnects while the API
+is running, requests receive `503 DATABASE_UNAVAILABLE` rather than a generic
+internal-server error.
+
 ## 5. Enable Frontend API Mode
 
 ```bash

@@ -20,6 +20,20 @@ export function errorHandler(err, req, res, _next) {
     });
   }
 
+  if (
+    err.name === 'PrismaClientInitializationError' ||
+    ['P1000', 'P1001', 'P1002', 'P1017'].includes(err.code)
+  ) {
+    console.error('[Database Error]', err);
+    return res.status(503).json({
+      success: false,
+      error: {
+        code: 'DATABASE_UNAVAILABLE',
+        message: 'Database unavailable. Check DATABASE_URL and PostgreSQL connectivity.',
+      },
+    });
+  }
+
   if (err.name === 'ZodError') {
     return res.status(400).json({
       success: false,
